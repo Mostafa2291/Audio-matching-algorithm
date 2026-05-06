@@ -1,9 +1,23 @@
 from scipy.io import wavfile
 import numpy as np
 import matplotlib.pyplot as plt
-from sympy import fourier_series, pi, plot
+from scipy.fftpack import fft
+
 
 sample_rate, song = wavfile.read("Song.wav")
+
+
+
+
+
+def fourier_transform(signal):
+    n = len(signal)
+    result = fft(signal)
+    magnitude = np.abs(result)
+    one_sided = magnitude[:n//2]
+    return one_sided
+
+
 
 if len(song.shape) == 2:
     mono_song = song.mean(axis=1).astype(song.dtype)
@@ -14,7 +28,7 @@ else:
 
 
 total_samples = len(song)
-
+total_time = total_samples/sample_rate
 time = np.arange(total_samples)/sample_rate
 
 short_time = 4
@@ -54,5 +68,48 @@ plt.grid(True)
 plt.show()
 
 
-def fourier_transform(array)
+query_fft = fourier_transform(y_query)
+frequency = np.linspace(0, sample_rate/2,len(query_fft))
+
+plt.plot(frequency, query_fft)
+plt.title("Query in Frequency Domain")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.grid(True)
+plt.show()
+
+
+
+clip_length = len(y_query)
+step_size = int(sample_rate * 0.5)
+scores = []
+times = []
+for start in range(0, len(mono_song) - clip_length+1,step_size):
+    window = mono_song[start:start+clip_length]
+    window_fft = fourier_transform(window)
+    similarity = np.dot(query_fft, window_fft)/ (np.linalg.norm(query_fft) * np.linalg.norm(window_fft)) 
+    
+    scores.append(similarity)
+    times.append(start/sample_rate)
+    
+
+best_score_index = np.argmax(scores)
+matching_time = times[best_score_index]
+best_score = scores[best_score_index]
+
+print(f"Sampling frequency:     {sample_rate} Hz")
+print(f"Length of full signal:  {total_time} seconds")
+print(f"Clip length:            {duration_t} seconds")
+print(f"Original clip position: {start_t} seconds")
+print(f"Detected position:      {matching_time} seconds")
+print(f"Best similarity score:  {best_score}")
+
+    
+
+
+
+
+    
+    
+    
 
