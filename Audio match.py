@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
 
-"""the song file"""
+
 sample_rate, song = wavfile.read("Song.wav")
 
-"""no surround sound"""
+
 if len(song.shape) == 2:
     mono_song = song.mean(axis=1).astype(song.dtype)   
 else:
@@ -17,18 +17,18 @@ else:
 total_samples = len(song)
 total_time = total_samples/sample_rate
 time = np.arange(total_samples)/sample_rate
-short_time = 4
+short_time = 15
 samples_to_plot = int(short_time*sample_rate)
 x_time = time[0:samples_to_plot]
 y_song = mono_song[0:samples_to_plot]
 """plotting portion of signal"""
-plt.subplot(2,1,1)
+
 plt.plot(x_time,y_song)
 plt.title("Audio Signal in Time Domain")
 plt.xlabel("Time (seconds)")
 plt.ylabel("Amplitude")
 plt.grid(True)
-
+plt.show()
 """extracting the query clip"""
 duration_t=15
 start_t= 167
@@ -38,7 +38,7 @@ query_end = int(end_t*sample_rate)
 xq_time = time[query_start:query_end]
 y_query = mono_song[query_start:query_end]
 """plotting the query clip"""
-plt.subplot(2,1,2)
+
 plt.plot(xq_time,y_query)
 plt.title("Query in time domain")
 plt.xlabel("Time (seconds)")
@@ -82,40 +82,33 @@ best_score_index = np.argmax(scores)
 matching_time = times[best_score_index]
 best_score = scores[best_score_index]
 
+
+times_array = np.array(times)
+actual_time_index = np.argmin(np.abs(times_array - start_t))
+actual_score = scores[actual_time_index]
+
+# Plot the ACTUAL position marker ( a green circle 'o')
+
+plt.plot(start_t, actual_score, marker='o', markersize=10, color="tab:green", linestyle='None', label=f"Actual Position ({start_t} s)")
+plt.annotate(f"Actual: {start_t} s", 
+             xy=(start_t, actual_score), 
+             xytext=(10, -15), textcoords="offset points", 
+             color="tab:green", fontweight="bold", ha = "right")
+# Plot the DETECTED position marker ( a red star '*')
+plt.plot(matching_time, best_score, marker='*', markersize=15, color="tab:red", linestyle='None', label=f"Detected Position ({matching_time:.1f} s)")
+plt.annotate(f"Detected: {matching_time:.1f} s", 
+             xy=(matching_time, best_score), 
+             xytext=(10, -15), textcoords="offset points", 
+             color="tab:red", fontweight="bold", ha = "left")
+
 """plotting similarity score against time"""
 plt.plot(times, scores)
-plt.title("Similarity x time")
+plt.title("Similarity score vs time")
 plt.xlabel("Time")
 plt.ylabel("Similarity score")
 plt.grid(True)
 plt.show()
-"""markers
-fig, ax = plt.subplots(figsize=(13, 5))
 
-ax.plot(times, scores, color="steelblue", linewidth=1.2, label="Similarity score")
-
-# Actual clip position marker
-ax.axvline(start_t, color="tab:green", linewidth=2, linestyle="--",
-           label=f"Actual position  ({start_t} s)")
-ax.annotate(f"Actual\n{start_t} s",
-            xy=(start_t, scores[np.argmin(np.abs(times - start_t))]),
-            xytext=(start_t + 5, ax.get_ylim()[1] * 0.85 if ax.get_ylim()[1] else 0.9),
-            arrowprops=dict(arrowstyle="->", color="tab:green"),
-            color="tab:green", fontsize=9, fontweight="bold")
-
-# Detected position marker
-ax.axvline(matching_time, color="tab:red", linewidth=2, linestyle=":",
-           label=f"Detected position ({matching_time:.1f} s)")
-ax.annotate(f"Detected\n{matching_time:.1f} s",
-            xy=(matching_time, best_score),
-            xytext=(matching_time + 5, best_score * 0.92),
-            arrowprops=dict(arrowstyle="->", color="tab:red"),
-            color="tab:red", fontsize=9, fontweight="bold")
-
-ax.set_title("Similarity Score vs Time  |  Actual & Detected Positions")
-ax.set_xlabel("Time (s)"); ax.set_ylabel("Cosine Similarity")
-ax.legend(loc="upper left"); ax.grid(True, alpha=0.4)
-plt.tight_layout(); plt.show()"""
 
 """original vs detected"""
 det_start  = int(matching_time  * sample_rate)
